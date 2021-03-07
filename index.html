@@ -1,0 +1,202 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-149877612-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-149877612-1');
+    </script>
+
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Taiji is an integrative multi-omics 
+        analysis pipeline for network analysis 
+        and driver gene identifications." />
+    <title>Taiji</title>
+
+    <!-- Foundation CSS -->
+    <link href="static/css/app.css" rel="stylesheet" type="text/css">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css?family=Merienda+One" rel="stylesheet" type="text/css">
+
+    <!-- MathJax -->
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+
+
+<body>
+    <div data-sticky-container>
+<div class="top-bar" data-sticky data-options="marginTop:0;" style="width:100%;z-index:999;">
+    <div class="top-bar-left">
+      <ul class="menu">
+        <li id="brand">
+          <image id="logo" src="static/img/logo.svg">
+          <a href="index.html">Taiji</a>
+        </li>
+      </ul>
+    </div>
+    <div class="top-bar-right">
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a target="workflow" href="static/other/taiji.html">Workflow</a></li>
+        <li><a href="install.html">Install</a></li>
+        <li><a href="blog_1_ATAC.html">Tutorial</a></li>
+        <li><a target="_blank" href="https://taiji-pipeline.github.io/documentation/">Manual</a></li>
+        <li><a href="algorithm_PageRank.html">Algorithm</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+</div>
+</div>
+
+    <div id="main" class="grid-container">
+    
+        <div class="orbit" role="region" aria-label="Favorite Pictures" data-orbit>
+  <div class="orbit-wrapper">
+
+    <div class="orbit-controls">
+      <button style="color:black" class="orbit-previous"><span class="show-for-sr">Previous Slide</span>◀︎</button>
+      <button style="color:black" class="orbit-next"><span class="show-for-sr">Next Slide</span>▶︎</button>
+    </div>
+
+    <ul class="orbit-container">
+      <li class="is-active orbit-slide">
+        <figure class="orbit-figure">
+          <img class="orbit-image" src="static/img/SA_2019.png">
+          <figcaption class="orbit-caption">
+            <a target="_blank" href="http://advances.sciencemag.org/content/5/3/eaav3262">Taiji: System-level identification of key transcription factors reveals transcriptional waves in mouse embryonic development.</a>
+          </figcaption>
+        </figure>
+      </li>
+
+      <li class="orbit-slide">
+        <figure class="orbit-figure">
+          <img class="orbit-image" src="static/img/NI_2017.jpg">
+          <figcaption class="orbit-caption">
+            <a target="_blank" href="https://www.nature.com/articles/ni.3706">Epigenetic landscapes reveal transcription factors that regulate CD8+ T cell differentiation.</a>
+          </figcaption>
+        </figure>
+      </li>
+
+      <li class="orbit-slide">
+        <figure class="orbit-figure">
+          <img class="orbit-image" src="static/img/Nature_2017.jpg">
+          <figcaption class="orbit-caption">
+            <a target="_blank" href="https://www.nature.com/articles/nature24993">Runx3 programs CD8+ T cell residency in non-lymphoid tissues and tumours.</a>
+          </figcaption>
+        </figure>
+      </li>
+
+    </ul>
+  </div>
+
+  <nav class="orbit-bullets">
+    <button class="is-active" data-slide="0"><span class="show-for-sr">First slide details.</span><span class="show-for-sr">Current Slide</span></button>
+    <button data-slide="1"><span class="show-for-sr">Second slide details.</span></button>
+    <button data-slide="2"><span class="show-for-sr">Third slide details.</span></button>
+  </nav>
+
+</div>
+
+<section>
+<p>
+The Taiji software is an integrative multi-omics data analysis framework.
+It can be used as a standalone pipeline to analyze ATAC-seq, RNA-seq, single cell ATAC-seq or Drop-seq data.
+However, the uniqueness and the power of Taiji really lie in its ability to
+integrate diverse datasets and use these information in a clever way to
+construct regulatory network and identify candidate driver genes.
+</p>
+</section>
+
+<section>
+
+<p>The design philosophy of the Taiji pipeline is focused on:</p>
+<ul>
+  <li>Correctness: We only include reliable algorithms and
+    make every effort to ensure the implementations are bug-free.</li>
+  <li>Performance: We code algorithms from scratch when necessary to
+    ensure the pipeline can scale to large datasets (thousands of samples at least).</li>
+  <li>Convinence: Most analyses have multipe entry points, e.g., Fastq, Bam or Bed.
+    The execution of the pipeline requires only a single command.</li>
+</ul>
+<p>We achieve these at the expense of customization. This will be improved in the future.</p>
+</section>
+
+
+<section>
+    <div class="grid-y" style="height: 270px;">
+        <div class="cell medium-4 shrink header medium-cell-block-container">
+          <h2>Quick Start</h2>
+          <div class="grid-x grid-padding-x">
+            <div class="cell medium-4"><a download href="static/other/config.yml">File 1: config.yml</a></div>
+            <div class="cell medium-8"><a download href="static/other/input.tsv">File 2: input.tsv</a></div>
+          </div>
+        </div>
+
+        <div class="cell medium-6 medium-cell-block-container">
+          <div class="grid-x grid-padding-x">
+            <div class="cell medium-4">
+               <pre><code>input: "input.tsv"
+output_dir: "output/"
+assembly: "GRCh38"</code></pre>
+            </div>
+            <div class="cell medium-8">
+               <pre><code>type	id	group	rep	path	tags
+ATAC-seq	control	control	1	ENCFF893KQZ,ENCFF443HVZ	ENCODE
+ATAC-seq	2h	2h	1	ENCFF173INV,ENCFF322IZC	ENCODE
+ATAC-seq	4h	4h	1	ENCFF562JHD,ENCFF943SYH	ENCODE</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="cell medium-2 medium-cell-block-container">
+          <code class="code-inline">taiji run --config config.yml -n 3 +RTS -N3</code>
+        </div>
+
+    </div>
+
+</section>
+
+<section>
+  <h2>Tutorials</h2>
+  <ul>
+    <li><a href="blog_1_ATAC.html">Analyzing ATAC-seq data</a></li>
+    <li><a href="blog_2_ATAC+RNA.html">Integrated analysis of ATAC-seq and RNA-seq data</a></li>
+  </ul>
+</section>
+
+<section>
+<p>
+If you have used <strong>Taiji</strong> in your research, please consider
+cite the following paper:
+</p>
+
+<blockquote>
+K. Zhang, M. Wang, Y. Zhao, W. Wang,
+Taiji: System-level identification of key transcription factors reveals
+transcriptional waves in mouse embryonic development.
+<em>Sci. Adv.</em> <strong>5</strong>, eaav3262 (2019).
+</blockquote>
+</section>
+    
+    </div>
+
+    <footer class="grid-container">
+    <hr />
+    <p>&copy; 2018-2020 Kai Zhang.</p>
+</footer>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/what-input/5.1.2/what-input.min.js"></script>
+    <script src="static/js/foundation.min.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
+
+</html>

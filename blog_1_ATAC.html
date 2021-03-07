@@ -1,0 +1,160 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-149877612-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-149877612-1');
+    </script>
+
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Taiji is an integrative multi-omics 
+        analysis pipeline for network analysis 
+        and driver gene identifications." />
+    <title>Taiji</title>
+
+    <!-- Foundation CSS -->
+    <link href="static/css/app.css" rel="stylesheet" type="text/css">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css?family=Merienda+One" rel="stylesheet" type="text/css">
+
+    <!-- MathJax -->
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+
+
+<body>
+    <div data-sticky-container>
+<div class="top-bar" data-sticky data-options="marginTop:0;" style="width:100%;z-index:999;">
+    <div class="top-bar-left">
+      <ul class="menu">
+        <li id="brand">
+          <image id="logo" src="static/img/logo.svg">
+          <a href="index.html">Taiji</a>
+        </li>
+      </ul>
+    </div>
+    <div class="top-bar-right">
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a target="workflow" href="static/other/taiji.html">Workflow</a></li>
+        <li><a href="install.html">Install</a></li>
+        <li><a href="blog_1_ATAC.html">Tutorial</a></li>
+        <li><a target="_blank" href="https://taiji-pipeline.github.io/documentation/">Manual</a></li>
+        <li><a href="algorithm_PageRank.html">Algorithm</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+</div>
+</div>
+
+    <div id="main" class="grid-container">
+    
+        <div class="off-canvas-wrapper">
+
+            <div class="title-bar hide-for-large">
+                    <button type="button" class="menu-icon" data-open="offCanvas">
+                    </button>
+            </div>
+
+            <div class="off-canvas-absolute off-canvas position-left reveal-for-large" id="offCanvas" data-off-canvas>
+                <ul class="vertical menu">
+                    
+                        <li class="active">
+                            <a href="blog_1_ATAC.html">ATAC: CD8 T cell development</a>
+                        </li>
+                    
+                        <li>
+                            <a href="blog_2_ATAC+RNA.html">ATAC+RNA: Mouse development</a>
+                        </li>
+                    
+                        <li>
+                            <a href="blog_3_scATAC.html">scATAC: Mouse forebrain</a>
+                        </li>
+                    
+                </ul>    
+            </div>
+    
+            <div class="off-canvas-content" data-off-canvas-content>
+                <p>In this tutorial, we will re-analyze the ATAC-seq data published in <a href="https://www.nature.com/articles/ni.3706"><em>Yu, 2017</em></a>.</p>
+<p>The analysis requires following additional software:</p>
+<ul>
+<li>fastq-dump</li>
+<li>samtools</li>
+<li>MACS2</li>
+<li>bwa</li>
+<li>bedGraphToBigWig</li>
+</ul>
+<p><strong>All you need to do in this tutorial is preparing two files (<code>input.tsv</code> and <code>config.yml</code>) and typing a single command. Taiji will do the rest for you.</strong></p>
+<p>If you are wondering what Taiji does under the hood, type <code>taiji view taiji.html</code> to generate an overview of the pipeline. You can then use your favorite web browser to open the HTML file.</p>
+<p>Now let’s start the tutorial!</p>
+<h1 id="preparing-input">Preparing input</h1>
+<p>We will use the SRA ID as the input and Taiji will download the data for us. To do this, add the following lines to the “input.tsv” file:</p>
+<pre><code>type	id	group	rep	path	format
+ATAC-seq	TN	TN	1	SRR5305074	SRA
+ATAC-seq	TN	TN	2	SRR5305075	SRA
+ATAC-seq	TE	TE	1	SRR5305076	SRA
+ATAC-seq	TE	TE	2	SRR5305077	SRA
+ATAC-seq	MP	MP	1	SRR5305078	SRA
+ATAC-seq	MP	MP	2	SRR5305079	SRA
+ATAC-seq	memory	memory	1	SRR5305080	SRA
+ATAC-seq	memory	memory	2	SRR5305081	SRA</code></pre>
+<p>Please note that the columns are TAB-separated. If there are multiple runs, combine them using “+”. For paired-end sequencing, specify that using the “PairedEnd” tag.</p>
+<pre><code>type	id	group	rep	path	format	tags
+ATAC-seq	memory	memory	1	SXXXX80+SXXXX81	SRA	
+ATAC-seq	memory	memory	1	SXXXX80	SRA	PairedEnd</code></pre>
+<p>Taiji also supports ENCODE data. You can input the file ID for any fastq or bam files and associate them with the “ENCODE” tag. For pairend-end fastqs, separate them using “,”.</p>
+<pre><code>type	id	group	rep	path	tags
+ATAC-seq	control	control	1	ENCFF893KQZ,ENCFF443HVZ	ENCODE</code></pre>
+<h1 id="preparing-configuration-file">Preparing configuration file</h1>
+<p>This is how the configuration file looks like:</p>
+<pre><code>input: &quot;input.tsv&quot;
+output_dir: &quot;output/&quot;
+assembly: &quot;mm10&quot;</code></pre>
+<h1 id="running-the-atac-seq-analysis">Running the ATAC-seq analysis</h1>
+<p>Use the following command to run the pipeline using ten concurrent threads:</p>
+<pre><code>taiji run --config config.yml -n 10 +RTS -N10</code></pre>
+<p>The arguments <code>-n 10 +RTS -N10</code> tell the <code>taiji</code> to use 10 cores/threads.</p>
+<p>OR</p>
+<pre><code>taiji run --config config.yml -n 10 --cloud</code></pre>
+<p>if you are using a job scheduling system like slurm or PBS. (Click <a href="https://taiji-pipeline.github.io/documentation/advance.html#parallelism-and-distributed-computing">here</a> to learn more about distributed computing)</p>
+<p>Taiji is able to pick up where you left off! To demonstrate this, after finishing a few steps, press <code>CTRL+C</code> to STOP the program and then re-run the program using the exact same command. You shall see the program continues from the last checkpoint.</p>
+<h1 id="results">Results</h1>
+<p>It will take several hours for the program to finish. Once it finishes, all results will be in the <code>output</code> directory, including BAM files, BED files, peaks, etc.</p>
+<p><img src="static/other/atac_demo/files.png" /></p>
+<p>Usually the first thing we want to look at is the quality of the data. The QC metrics can be visualized by the <code>qc.html</code> file in the <code>output/ATACSeq/QC</code> directory.</p>
+<p>Here are some of the QC metrics:</p>
+<p><img src="static/other/atac_demo/fig1.png" width="750" /></p>
+<p>Taiji combines motif scanning, network inference and the PageRank algorithm to rank TFs. This result will be saved in the <code>GeneRank.tsv</code> file. There is also a <code>GeneRank.html</code> file that you can visualize.</p>
+<p><img src="static/other/atac_demo/fig2.png" /></p>
+<p>The figure above shows different T cell population has its own unique transcriptional profile. We can zoom in to see the list of TFs that show high ranking scores in naive CD8 T cells.</p>
+<p><img src="static/other/atac_demo/fig3.png" /></p>
+<p>TCF7 is an important gene for the naive population. As an example, we plotted the gene TCF7 and its regulatees in TN and TE populations. It clearly shows that TCF7 regulates much more genes in the naive population.</p>
+<figure>
+<img src="static/other/atac_demo/fig4.png" alt /><figcaption>TCF7 in TN(Left) and TE(Right)</figcaption>
+</figure>
+            </div>
+        </div>
+    
+    </div>
+
+    <footer class="grid-container">
+    <hr />
+    <p>&copy; 2018-2020 Kai Zhang.</p>
+</footer>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/what-input/5.1.2/what-input.min.js"></script>
+    <script src="static/js/foundation.min.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
+
+</html>

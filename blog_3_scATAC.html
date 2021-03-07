@@ -1,0 +1,134 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-149877612-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-149877612-1');
+    </script>
+
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Taiji is an integrative multi-omics 
+        analysis pipeline for network analysis 
+        and driver gene identifications." />
+    <title>Taiji</title>
+
+    <!-- Foundation CSS -->
+    <link href="static/css/app.css" rel="stylesheet" type="text/css">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css?family=Merienda+One" rel="stylesheet" type="text/css">
+
+    <!-- MathJax -->
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+
+
+<body>
+    <div data-sticky-container>
+<div class="top-bar" data-sticky data-options="marginTop:0;" style="width:100%;z-index:999;">
+    <div class="top-bar-left">
+      <ul class="menu">
+        <li id="brand">
+          <image id="logo" src="static/img/logo.svg">
+          <a href="index.html">Taiji</a>
+        </li>
+      </ul>
+    </div>
+    <div class="top-bar-right">
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a target="workflow" href="static/other/taiji.html">Workflow</a></li>
+        <li><a href="install.html">Install</a></li>
+        <li><a href="blog_1_ATAC.html">Tutorial</a></li>
+        <li><a target="_blank" href="https://taiji-pipeline.github.io/documentation/">Manual</a></li>
+        <li><a href="algorithm_PageRank.html">Algorithm</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+</div>
+</div>
+
+    <div id="main" class="grid-container">
+    
+        <div class="off-canvas-wrapper">
+
+            <div class="title-bar hide-for-large">
+                    <button type="button" class="menu-icon" data-open="offCanvas">
+                    </button>
+            </div>
+
+            <div class="off-canvas-absolute off-canvas position-left reveal-for-large" id="offCanvas" data-off-canvas>
+                <ul class="vertical menu">
+                    
+                        <li>
+                            <a href="blog_1_ATAC.html">ATAC: CD8 T cell development</a>
+                        </li>
+                    
+                        <li>
+                            <a href="blog_2_ATAC+RNA.html">ATAC+RNA: Mouse development</a>
+                        </li>
+                    
+                        <li class="active">
+                            <a href="blog_3_scATAC.html">scATAC: Mouse forebrain</a>
+                        </li>
+                    
+                </ul>    
+            </div>
+    
+            <div class="off-canvas-content" data-off-canvas-content>
+                <p>The analysis requires following additional software:</p>
+<ul>
+<li>samtools &gt;= v1.9.</li>
+<li>BWA &gt;= v0.7.17</li>
+</ul>
+<h1 id="preparing-input">Preparing input</h1>
+<p>Open a new file named <code>input.tsv</code> and write down the following content:</p>
+<pre><code>type	id	group	rep	path	tags
+scATAC-seq	forebrain_E11.5	forebrain_E11.5	1	ENCFF951ZRW,ENCFF197HRD	ENCODE,Demultiplexed
+scATAC-seq	forebrain_P0	forebrain_P0	1	ENCFF501RJM,ENCFF595BQU	ENCODE,Demultiplexed</code></pre>
+<p>The input file is tab-delimited. It tells the Taiji to download data from the ENCODE portal and perform joint analysis of these two samples. Remove the “ENCODE” tag if your files are in a local path, for example:</p>
+<pre><code>type	id	group	rep	path	tags
+scATAC-seq	forebrain_E11.5	forebrain_E11.5	1	e11.5_R1.fastq.gz,e11.5_R2.fastq.gz	Demultiplexed
+scATAC-seq	forebrain_P0	forebrain_P0	1	p0_R1.fastq.gz,p0_R2.fastq.gz	Demultiplexed</code></pre>
+<p>The FASTQ input should be demultiplexed by adding the barcode to the beginning of each read in the following format: “@” + “barcode” + “:” + “read_name”. Below is one example of demultiplexed fastq file:</p>
+<pre><code>$ zcat CEMBA180306_2B.demultiplexed.R1.fastq.gz | head 
+@AGACGGAGACGAATCTAGGCTGGTTGCCTTAC:7001113:920:HJ55CBCX2:1:1108:1121:1892 1:N:0:0
+ATCCTGGCATGAAAGGATTTTTTTTTTAGAAAATGAAATATATTTTAAAG
++
+DDDDDIIIIHIIGHHHIIIHIIIIIIHHIIIIIIIIIIIIIIIIIIIIII</code></pre>
+<h1 id="configuration">Configuration</h1>
+<p>Open a new file named <code>config.yml</code> and write down the following content:</p>
+<pre><code>input: &quot;input.tsv&quot;
+output_dir: &quot;output/&quot;
+bwa_index: &quot;path-to-BWAIndex/genome.fa&quot;
+genome: &quot;path-to-genome-fasta/genome.fa&quot;</code></pre>
+<p>Please modify the path of <code>bwa_index</code> and <code>genome</code>.</p>
+<h1 id="launch-the-preprocessing-pipeline">Launch the preprocessing pipeline</h1>
+<p>The preprocessing pipeline consists of reads mapping, reads filtering, quality control. Use the command below to execute the preprocessing pipeline:</p>
+<pre><code>taiji run --config config.yml --select SCATAC_Remove_Duplicates</code></pre>
+<p>A fragment file will be generated for each FASTQ input in the output directory. For the format of the fragment file, see here: https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments.</p>
+            </div>
+        </div>
+    
+    </div>
+
+    <footer class="grid-container">
+    <hr />
+    <p>&copy; 2018-2020 Kai Zhang.</p>
+</footer>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/what-input/5.1.2/what-input.min.js"></script>
+    <script src="static/js/foundation.min.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
+
+</html>

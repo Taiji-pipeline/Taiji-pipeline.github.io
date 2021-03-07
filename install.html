@@ -1,0 +1,88 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-149877612-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-149877612-1');
+    </script>
+
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Taiji is an integrative multi-omics 
+        analysis pipeline for network analysis 
+        and driver gene identifications." />
+    <title>Taiji</title>
+
+    <!-- Foundation CSS -->
+    <link href="static/css/app.css" rel="stylesheet" type="text/css">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css?family=Merienda+One" rel="stylesheet" type="text/css">
+
+    <!-- MathJax -->
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+
+
+<body>
+    <div data-sticky-container>
+<div class="top-bar" data-sticky data-options="marginTop:0;" style="width:100%;z-index:999;">
+    <div class="top-bar-left">
+      <ul class="menu">
+        <li id="brand">
+          <image id="logo" src="static/img/logo.svg">
+          <a href="index.html">Taiji</a>
+        </li>
+      </ul>
+    </div>
+    <div class="top-bar-right">
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a target="workflow" href="static/other/taiji.html">Workflow</a></li>
+        <li><a href="install.html">Install</a></li>
+        <li><a href="blog_1_ATAC.html">Tutorial</a></li>
+        <li><a target="_blank" href="https://taiji-pipeline.github.io/documentation/">Manual</a></li>
+        <li><a href="algorithm_PageRank.html">Algorithm</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+</div>
+</div>
+
+    <div id="main" class="grid-container">
+    
+        <h1 id="installation-instruction-for-command-line-interface">Installation instruction for command line interface</h1>
+<p>Pre-built binaries are available for macOS and Linux systems from <a href="https://github.com/Taiji-pipeline/Taiji/releases">github</a>.</p>
+<ul>
+<li><p><code>taiji-CentOS-x86_64</code>: for Red Hat Enterprise Linux derivatives.</p></li>
+<li><p><code>taiji-Ubuntu-x86_64</code>: for Debian linux derivatives.</p></li>
+<li><p><code>taiji-macOS-XX-XX</code>: for macOS.</p></li>
+</ul>
+<p>Example:</p>
+<pre><code>curl -L https://github.com/Taiji-pipeline/Taiji/releases/latest/download/taiji-CentOS-x86_64 -o taiji
+chmod +x taiji
+./taiji --help</code></pre>
+<p>If a binary is not available for your platform, you can build the program from the source following these <a href="https://taiji-pipeline.github.io/documentation/install.html">instructions</a>.</p>
+<p>After installing the program, put it in your system’s PATH. To verify that the installation is successful, type <code>taiji --help</code> in your command line.</p>
+    
+    </div>
+
+    <footer class="grid-container">
+    <hr />
+    <p>&copy; 2018-2020 Kai Zhang.</p>
+</footer>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/what-input/5.1.2/what-input.min.js"></script>
+    <script src="static/js/foundation.min.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
+
+</html>

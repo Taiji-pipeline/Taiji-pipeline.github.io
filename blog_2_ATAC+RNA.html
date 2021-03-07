@@ -1,0 +1,420 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-149877612-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-149877612-1');
+    </script>
+
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Taiji is an integrative multi-omics 
+        analysis pipeline for network analysis 
+        and driver gene identifications." />
+    <title>Taiji</title>
+
+    <!-- Foundation CSS -->
+    <link href="static/css/app.css" rel="stylesheet" type="text/css">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css?family=Merienda+One" rel="stylesheet" type="text/css">
+
+    <!-- MathJax -->
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+
+
+<body>
+    <div data-sticky-container>
+<div class="top-bar" data-sticky data-options="marginTop:0;" style="width:100%;z-index:999;">
+    <div class="top-bar-left">
+      <ul class="menu">
+        <li id="brand">
+          <image id="logo" src="static/img/logo.svg">
+          <a href="index.html">Taiji</a>
+        </li>
+      </ul>
+    </div>
+    <div class="top-bar-right">
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a target="workflow" href="static/other/taiji.html">Workflow</a></li>
+        <li><a href="install.html">Install</a></li>
+        <li><a href="blog_1_ATAC.html">Tutorial</a></li>
+        <li><a target="_blank" href="https://taiji-pipeline.github.io/documentation/">Manual</a></li>
+        <li><a href="algorithm_PageRank.html">Algorithm</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+</div>
+</div>
+
+    <div id="main" class="grid-container">
+    
+        <div class="off-canvas-wrapper">
+
+            <div class="title-bar hide-for-large">
+                    <button type="button" class="menu-icon" data-open="offCanvas">
+                    </button>
+            </div>
+
+            <div class="off-canvas-absolute off-canvas position-left reveal-for-large" id="offCanvas" data-off-canvas>
+                <ul class="vertical menu">
+                    
+                        <li>
+                            <a href="blog_1_ATAC.html">ATAC: CD8 T cell development</a>
+                        </li>
+                    
+                        <li class="active">
+                            <a href="blog_2_ATAC+RNA.html">ATAC+RNA: Mouse development</a>
+                        </li>
+                    
+                        <li>
+                            <a href="blog_3_scATAC.html">scATAC: Mouse forebrain</a>
+                        </li>
+                    
+                </ul>    
+            </div>
+    
+            <div class="off-canvas-content" data-off-canvas-content>
+                <p>In this tutorial, we will perform an integrated analysis of ATAC-seq and RNA-seq during mouse development. The original analysis was published in <a href="https://advances.sciencemag.org/content/5/3/eaav3262"><em>Zhang, 2019</em></a>.</p>
+<p>This tutorial requires following additional software:</p>
+<ul>
+<li>samtools</li>
+<li>MACS2</li>
+<li>bwa</li>
+<li>bedGraphToBigWig</li>
+</ul>
+<h1 id="preparing-input">Preparing input</h1>
+<p>We will download the data from the ENCODE portal. First add the IDs of files to the <code>input.tsv</code>, and associate each record with the <code>ENCODE</code> tag. We will download and analyze raw FASTQ file for ATAC-seq experiments. For RNA-seq experiments, post-processed gene quantifications are available to download. So we will use those as our input, Taiji is capable of analyzing the raw FASTQ for RNA-seq as well though. To indicate that the files are gene quantifications, add <code>GeneQuant</code> tags to those files.</p>
+<p>input.tsv:</p>
+<pre style="height:500px"><code>type	id	group	rep	path	tags
+ATAC-seq	ENCSR204ZTY	limb_E15.5	1	ENCFF629FRA,ENCFF222KJL	ENCODE
+ATAC-seq	ENCSR204ZTY	limb_E15.5	2	ENCFF488EFS,ENCFF917DTZ	ENCODE
+ATAC-seq	ENCSR150RMQ	embryonic facial prominence_E11.5	2	ENCFF741MLW,ENCFF460ETY	ENCODE
+ATAC-seq	ENCSR150RMQ	embryonic facial prominence_E11.5	1	ENCFF667CEX,ENCFF165UKX	ENCODE
+ATAC-seq	ENCSR358MOW	embryonic facial prominence_E13.5	2	ENCFF104GCO,ENCFF737HFT	ENCODE
+ATAC-seq	ENCSR358MOW	embryonic facial prominence_E13.5	1	ENCFF166ANK,ENCFF512CMK	ENCODE
+ATAC-seq	ENCSR983JWA	neural tube_E15.5	1	ENCFF847BCI,ENCFF608AWT	ENCODE
+ATAC-seq	ENCSR983JWA	neural tube_E15.5	2	ENCFF551SAG,ENCFF166QOA	ENCODE
+ATAC-seq	ENCSR623GSD	hindbrain_E16.5	1	ENCFF568THX,ENCFF196ILN	ENCODE
+ATAC-seq	ENCSR623GSD	hindbrain_E16.5	2	ENCFF950API,ENCFF946KOT	ENCODE
+ATAC-seq	ENCSR088UYE	hindbrain_E12.5	1	ENCFF954MPR,ENCFF824PVC	ENCODE
+ATAC-seq	ENCSR088UYE	hindbrain_E12.5	2	ENCFF199WNL,ENCFF968KUR	ENCODE
+ATAC-seq	ENCSR618HDK	stomach_E14.5	2	ENCFF395TZD,ENCFF395IGM	ENCODE
+ATAC-seq	ENCSR618HDK	stomach_E14.5	1	ENCFF699GSF,ENCFF944CWK	ENCODE
+ATAC-seq	ENCSR961SMM	intestine_E15.5	2	ENCFF867QVP,ENCFF771QNR	ENCODE
+ATAC-seq	ENCSR961SMM	intestine_E15.5	1	ENCFF674OOP,ENCFF775MXU	ENCODE
+ATAC-seq	ENCSR261ICG	embryonic facial prominence_E15.5	1	ENCFF724ZGT,ENCFF312YEC	ENCODE
+ATAC-seq	ENCSR261ICG	embryonic facial prominence_E15.5	2	ENCFF139WZE,ENCFF322LEO	ENCODE
+ATAC-seq	ENCSR154BXN	midbrain_E12.5	1	ENCFF680STO,ENCFF476NYE	ENCODE
+ATAC-seq	ENCSR154BXN	midbrain_E12.5	2	ENCFF194BBQ,ENCFF867CGI	ENCODE
+ATAC-seq	ENCSR903GMO	forebrain_E13.5	1	ENCFF401VUV,ENCFF898NRO	ENCODE
+ATAC-seq	ENCSR903GMO	forebrain_E13.5	2	ENCFF721LGJ,ENCFF777UKE	ENCODE
+ATAC-seq	ENCSR810HQR	forebrain_E14.5	1	ENCFF048MTG,ENCFF890LGM	ENCODE
+ATAC-seq	ENCSR810HQR	forebrain_E14.5	2	ENCFF633MTW,ENCFF666DRJ	ENCODE
+ATAC-seq	ENCSR836PUC	forebrain_E16.5	2	ENCFF058IAE,ENCFF765HUX	ENCODE
+ATAC-seq	ENCSR836PUC	forebrain_E16.5	1	ENCFF776GDQ,ENCFF588XZG	ENCODE
+ATAC-seq	ENCSR211OCS	midbrain_P0	2	ENCFF713VTW,ENCFF166GCN	ENCODE
+ATAC-seq	ENCSR211OCS	midbrain_P0	1	ENCFF470CPP,ENCFF073BZO	ENCODE
+ATAC-seq	ENCSR310MLB	forebrain_P0	2	ENCFF197GTC,ENCFF209GGJ	ENCODE
+ATAC-seq	ENCSR310MLB	forebrain_P0	1	ENCFF296GZG,ENCFF664RZO	ENCODE
+ATAC-seq	ENCSR363SKQ	stomach_E16.5	1	ENCFF310DVL,ENCFF545MGJ	ENCODE
+ATAC-seq	ENCSR363SKQ	stomach_E16.5	2	ENCFF836EJZ,ENCFF528WNO	ENCODE
+ATAC-seq	ENCSR377YDY	limb_E11.5	1	ENCFF156CTY,ENCFF507XBJ	ENCODE
+ATAC-seq	ENCSR377YDY	limb_E11.5	2	ENCFF332GCF,ENCFF672BYU	ENCODE
+ATAC-seq	ENCSR551WBK	limb_E12.5	1	ENCFF698GFS,ENCFF110KAU	ENCODE
+ATAC-seq	ENCSR551WBK	limb_E12.5	2	ENCFF637TUL,ENCFF283VKJ	ENCODE
+ATAC-seq	ENCSR700QBR	neural tube_E14.5	2	ENCFF726JSJ,ENCFF461GHH	ENCODE
+ATAC-seq	ENCSR700QBR	neural tube_E14.5	1	ENCFF111RFS,ENCFF945IYI	ENCODE
+ATAC-seq	ENCSR312LQX	hindbrain_P0	2	ENCFF971XEA,ENCFF215WAD	ENCODE
+ATAC-seq	ENCSR312LQX	hindbrain_P0	1	ENCFF547YID,ENCFF131VHT	ENCODE
+ATAC-seq	ENCSR559FAJ	forebrain_E12.5	1	ENCFF413XTH,ENCFF119TXW	ENCODE
+ATAC-seq	ENCSR559FAJ	forebrain_E12.5	2	ENCFF199UBT,ENCFF171APM	ENCODE
+ATAC-seq	ENCSR302LIV	liver_E12.5	2	ENCFF772GVP,ENCFF987EVS	ENCODE
+ATAC-seq	ENCSR302LIV	liver_E12.5	1	ENCFF409BPW,ENCFF016UWL	ENCODE
+ATAC-seq	ENCSR876SYO	embryonic facial prominence_E14.5	2	ENCFF185IWQ,ENCFF050LTK	ENCODE
+ATAC-seq	ENCSR876SYO	embryonic facial prominence_E14.5	1	ENCFF369BHN,ENCFF043JPE	ENCODE
+ATAC-seq	ENCSR597BGP	stomach_P0	1	ENCFF756RRU,ENCFF907CZS	ENCODE
+ATAC-seq	ENCSR597BGP	stomach_P0	2	ENCFF550FMX,ENCFF601QOX	ENCODE
+ATAC-seq	ENCSR966ORC	intestine_E16.5	2	ENCFF278MAA,ENCFF898FIK	ENCODE
+ATAC-seq	ENCSR966ORC	intestine_E16.5	1	ENCFF880CTO,ENCFF896RTV	ENCODE
+ATAC-seq	ENCSR102NGD	lung_P0	1	ENCFF705BQG,ENCFF269YOD	ENCODE
+ATAC-seq	ENCSR102NGD	lung_P0	2	ENCFF370OFA,ENCFF150BVC	ENCODE
+ATAC-seq	ENCSR552ABC	heart_E13.5	1	ENCFF100SXY,ENCFF064NKM	ENCODE
+ATAC-seq	ENCSR552ABC	heart_E13.5	2	ENCFF406EUS,ENCFF559NSG	ENCODE
+ATAC-seq	ENCSR603MWL	heart_E15.5	2	ENCFF385WYM,ENCFF051GLX	ENCODE
+ATAC-seq	ENCSR603MWL	heart_E15.5	1	ENCFF829XFO,ENCFF694SPD	ENCODE
+ATAC-seq	ENCSR335VJW	lung_E14.5	2	ENCFF204EVA,ENCFF437GNH	ENCODE
+ATAC-seq	ENCSR335VJW	lung_E14.5	1	ENCFF979DGG,ENCFF244BWB	ENCODE
+ATAC-seq	ENCSR819QOJ	midbrain_E13.5	2	ENCFF667HBE,ENCFF574MEU	ENCODE
+ATAC-seq	ENCSR819QOJ	midbrain_E13.5	1	ENCFF659NJR,ENCFF703JZE	ENCODE
+ATAC-seq	ENCSR668EIA	lung_E15.5	1	ENCFF507MHY,ENCFF217WJG	ENCODE
+ATAC-seq	ENCSR668EIA	lung_E15.5	2	ENCFF159YPF,ENCFF940GZL	ENCODE
+ATAC-seq	ENCSR798FDL	hindbrain_E14.5	2	ENCFF868CEL,ENCFF266VLC	ENCODE
+ATAC-seq	ENCSR798FDL	hindbrain_E14.5	1	ENCFF673MIM,ENCFF657XRO	ENCODE
+ATAC-seq	ENCSR652CNN	heart_E12.5	2	ENCFF719RSO,ENCFF086MTT	ENCODE
+ATAC-seq	ENCSR652CNN	heart_E12.5	1	ENCFF377YCK,ENCFF982JWB	ENCODE
+ATAC-seq	ENCSR150EOO	intestine_E14.5	1	ENCFF642UHQ,ENCFF188JXF	ENCODE
+ATAC-seq	ENCSR150EOO	intestine_E14.5	2	ENCFF593JRX,ENCFF243SQC	ENCODE
+ATAC-seq	ENCSR732OTZ	kidney_E16.5	1	ENCFF413HET,ENCFF021GRI	ENCODE
+ATAC-seq	ENCSR732OTZ	kidney_E16.5	2	ENCFF573ZOR,ENCFF326PPN	ENCODE
+ATAC-seq	ENCSR785NEL	liver_E11.5	1	ENCFF288CVJ,ENCFF888ZZV	ENCODE
+ATAC-seq	ENCSR785NEL	liver_E11.5	2	ENCFF883SEZ,ENCFF035OMK	ENCODE
+ATAC-seq	ENCSR068YGC	heart_E14.5	1	ENCFF826YDW,ENCFF258GFE	ENCODE
+ATAC-seq	ENCSR068YGC	heart_E14.5	2	ENCFF753WMG,ENCFF031SEH	ENCODE
+ATAC-seq	ENCSR976LWP	forebrain_E15.5	2	ENCFF248PXW,ENCFF825UHO	ENCODE
+ATAC-seq	ENCSR976LWP	forebrain_E15.5	1	ENCFF906VXU,ENCFF500SXI	ENCODE
+ATAC-seq	ENCSR273UFV	forebrain_E11.5	1	ENCFF419LDW,ENCFF963YIU	ENCODE
+ATAC-seq	ENCSR273UFV	forebrain_E11.5	2	ENCFF083TDB,ENCFF680UAR	ENCODE
+ATAC-seq	ENCSR662KNY	hindbrain_E15.5	2	ENCFF213OUA,ENCFF709CLT	ENCODE
+ATAC-seq	ENCSR662KNY	hindbrain_E15.5	1	ENCFF761JHA,ENCFF181OVJ	ENCODE
+ATAC-seq	ENCSR460BUL	limb_E14.5	1	ENCFF672EYN,ENCFF981BBK	ENCODE
+ATAC-seq	ENCSR460BUL	limb_E14.5	2	ENCFF948NPO,ENCFF634JLT	ENCODE
+ATAC-seq	ENCSR896XIN	limb_E13.5	1	ENCFF508LJX,ENCFF103PCA	ENCODE
+ATAC-seq	ENCSR896XIN	limb_E13.5	2	ENCFF732HZX,ENCFF506NVN	ENCODE
+ATAC-seq	ENCSR384JBF	midbrain_E14.5	1	ENCFF769SYG,ENCFF948TDP	ENCODE
+ATAC-seq	ENCSR384JBF	midbrain_E14.5	2	ENCFF227ATX,ENCFF307UMX	ENCODE
+ATAC-seq	ENCSR217NOA	neural tube_E13.5	1	ENCFF336EQO,ENCFF308AMG	ENCODE
+ATAC-seq	ENCSR217NOA	neural tube_E13.5	2	ENCFF843JWW,ENCFF577DNF	ENCODE
+ATAC-seq	ENCSR371KFW	heart_E16.5	1	ENCFF416BZL,ENCFF473REG	ENCODE
+ATAC-seq	ENCSR371KFW	heart_E16.5	2	ENCFF304CCF,ENCFF778FWU	ENCODE
+ATAC-seq	ENCSR032HKE	liver_E14.5	1	ENCFF159HYY,ENCFF911HQX	ENCODE
+ATAC-seq	ENCSR032HKE	liver_E14.5	2	ENCFF618OJP,ENCFF863FZP	ENCODE
+ATAC-seq	ENCSR079GOY	intestine_P0	2	ENCFF169QUZ,ENCFF742CFJ	ENCODE
+ATAC-seq	ENCSR079GOY	intestine_P0	1	ENCFF039HAM,ENCFF780FQW	ENCODE
+ATAC-seq	ENCSR820ACB	heart_E11.5	1	ENCFF279LMU,ENCFF820PVO	ENCODE
+ATAC-seq	ENCSR820ACB	heart_E11.5	2	ENCFF823XXU,ENCFF518FYP	ENCODE
+ATAC-seq	ENCSR023QZX	kidney_E15.5	2	ENCFF395EDU,ENCFF100YMT	ENCODE
+ATAC-seq	ENCSR023QZX	kidney_E15.5	1	ENCFF340WOK,ENCFF117TPW	ENCODE
+ATAC-seq	ENCSR096JCC	midbrain_E16.5	2	ENCFF518FPU,ENCFF754FRO	ENCODE
+ATAC-seq	ENCSR096JCC	midbrain_E16.5	1	ENCFF458XRA,ENCFF882GWB	ENCODE
+ATAC-seq	ENCSR468GUI	midbrain_E15.5	2	ENCFF267LVT,ENCFF347QTV	ENCODE
+ATAC-seq	ENCSR468GUI	midbrain_E15.5	1	ENCFF187YXW,ENCFF865ZYW	ENCODE
+ATAC-seq	ENCSR758IRM	kidney_E14.5	2	ENCFF802JNF,ENCFF576WIS	ENCODE
+ATAC-seq	ENCSR758IRM	kidney_E14.5	1	ENCFF958YUR,ENCFF504EBV	ENCODE
+ATAC-seq	ENCSR451NAE	heart_P0	2	ENCFF913PMS,ENCFF483MKX	ENCODE
+ATAC-seq	ENCSR451NAE	heart_P0	1	ENCFF655OFT,ENCFF999SZR	ENCODE
+ATAC-seq	ENCSR282YTE	neural tube_E11.5	2	ENCFF187AQG,ENCFF994STU	ENCODE
+ATAC-seq	ENCSR282YTE	neural tube_E11.5	1	ENCFF529IDC,ENCFF149EJI	ENCODE
+ATAC-seq	ENCSR690VOH	neural tube_E12.5	1	ENCFF226GOU,ENCFF444RRA	ENCODE
+ATAC-seq	ENCSR690VOH	neural tube_E12.5	2	ENCFF927BDD,ENCFF303PPN	ENCODE
+ATAC-seq	ENCSR382RUC	midbrain_E11.5	1	ENCFF747ZCB,ENCFF236CXJ	ENCODE
+ATAC-seq	ENCSR382RUC	midbrain_E11.5	2	ENCFF315TMY,ENCFF752YLN	ENCODE
+ATAC-seq	ENCSR343TXK	liver_E13.5	2	ENCFF360MVK,ENCFF443PRW	ENCODE
+ATAC-seq	ENCSR343TXK	liver_E13.5	1	ENCFF382CMV,ENCFF688ZFD	ENCODE
+ATAC-seq	ENCSR465PYP	liver_E15.5	1	ENCFF329VCX,ENCFF290ZBP	ENCODE
+ATAC-seq	ENCSR465PYP	liver_E15.5	2	ENCFF341HRL,ENCFF489XAT	ENCODE
+ATAC-seq	ENCSR486XAS	stomach_E15.5	1	ENCFF997AUJ,ENCFF033YBG	ENCODE
+ATAC-seq	ENCSR486XAS	stomach_E15.5	2	ENCFF211VPG,ENCFF442KCP	ENCODE
+ATAC-seq	ENCSR609OHJ	liver_P0	1	ENCFF599TJR,ENCFF176IZG	ENCODE
+ATAC-seq	ENCSR609OHJ	liver_P0	2	ENCFF957VLH,ENCFF999IJT	ENCODE
+ATAC-seq	ENCSR389CLN	kidney_P0	1	ENCFF171RXE,ENCFF144HIW	ENCODE
+ATAC-seq	ENCSR389CLN	kidney_P0	2	ENCFF763EEB,ENCFF765QFH	ENCODE
+ATAC-seq	ENCSR176BYZ	hindbrain_E13.5	2	ENCFF331IGF,ENCFF409GTD	ENCODE
+ATAC-seq	ENCSR176BYZ	hindbrain_E13.5	1	ENCFF071AXB,ENCFF628CBN	ENCODE
+ATAC-seq	ENCSR031HDN	embryonic facial prominence_E12.5	1	ENCFF265RFZ,ENCFF547OQI	ENCODE
+ATAC-seq	ENCSR031HDN	embryonic facial prominence_E12.5	2	ENCFF492KHX,ENCFF459CPD	ENCODE
+ATAC-seq	ENCSR012YAB	hindbrain_E11.5	2	ENCFF753PKM,ENCFF635ZQL	ENCODE
+ATAC-seq	ENCSR012YAB	hindbrain_E11.5	1	ENCFF058UWO,ENCFF163UHB	ENCODE
+ATAC-seq	ENCSR627OCR	lung_E16.5	1	ENCFF577XAL,ENCFF224TAO	ENCODE
+ATAC-seq	ENCSR627OCR	lung_E16.5	2	ENCFF872IZI,ENCFF427HTC	ENCODE
+ATAC-seq	ENCSR255XTC	liver_E16.5	2	ENCFF702NAP,ENCFF243ROW	ENCODE
+ATAC-seq	ENCSR255XTC	liver_E16.5	1	ENCFF894ZND,ENCFF788EQO	ENCODE
+RNA-seq	ENCSR691OPQ	heart_E11.5	1	ENCFF226IWR	ENCODE,GeneQuant
+RNA-seq	ENCSR691OPQ	heart_E11.5	2	ENCFF540EJL	ENCODE,GeneQuant
+RNA-seq	ENCSR908JWT	midbrain_E12.5	2	ENCFF887JHQ	ENCODE,GeneQuant
+RNA-seq	ENCSR908JWT	midbrain_E12.5	1	ENCFF399CQH	ENCODE,GeneQuant
+RNA-seq	ENCSR420QTO	hindbrain_E12.5	2	ENCFF242PFZ	ENCODE,GeneQuant
+RNA-seq	ENCSR420QTO	hindbrain_E12.5	1	ENCFF983XDK	ENCODE,GeneQuant
+RNA-seq	ENCSR504GEG	kidney_E14.5	1	ENCFF499WRT	ENCODE,GeneQuant
+RNA-seq	ENCSR504GEG	kidney_E14.5	2	ENCFF413OJO	ENCODE,GeneQuant
+RNA-seq	ENCSR851HEC	embryonic facial prominence_E12.5	1	ENCFF594CEM	ENCODE,GeneQuant
+RNA-seq	ENCSR851HEC	embryonic facial prominence_E12.5	2	ENCFF742JLO	ENCODE,GeneQuant
+RNA-seq	ENCSR401BSG	hindbrain_E15.5	1	ENCFF395LAH	ENCODE,GeneQuant
+RNA-seq	ENCSR401BSG	hindbrain_E15.5	2	ENCFF338ZXD	ENCODE,GeneQuant
+RNA-seq	ENCSR448MXQ	liver_E13.5	1	ENCFF615ZTQ	ENCODE,GeneQuant
+RNA-seq	ENCSR448MXQ	liver_E13.5	2	ENCFF336VTP	ENCODE,GeneQuant
+RNA-seq	ENCSR466KZY	stomach_E16.5	1	ENCFF288JNN	ENCODE,GeneQuant
+RNA-seq	ENCSR466KZY	stomach_E16.5	2	ENCFF052DOQ	ENCODE,GeneQuant
+RNA-seq	ENCSR367ZPZ	midbrain_E16.5	1	ENCFF918YFP	ENCODE,GeneQuant
+RNA-seq	ENCSR367ZPZ	midbrain_E16.5	2	ENCFF052VJO	ENCODE,GeneQuant
+RNA-seq	ENCSR290RRR	stomach_E14.5	1	ENCFF050PAT	ENCODE,GeneQuant
+RNA-seq	ENCSR290RRR	stomach_E14.5	2	ENCFF691EQW	ENCODE,GeneQuant
+RNA-seq	ENCSR823VEE	embryonic facial prominence_E14.5	1	ENCFF924CMS	ENCODE,GeneQuant
+RNA-seq	ENCSR823VEE	embryonic facial prominence_E14.5	2	ENCFF370UDF	ENCODE,GeneQuant
+RNA-seq	ENCSR370SFB	intestine_E15.5	1	ENCFF052THP	ENCODE,GeneQuant
+RNA-seq	ENCSR370SFB	intestine_E15.5	2	ENCFF114YCL	ENCODE,GeneQuant
+RNA-seq	ENCSR830IVQ	limb_E15.5	1	ENCFF532ZDE	ENCODE,GeneQuant
+RNA-seq	ENCSR830IVQ	limb_E15.5	2	ENCFF003DBZ	ENCODE,GeneQuant
+RNA-seq	ENCSR537GNQ	kidney_E16.5	1	ENCFF752QKG	ENCODE,GeneQuant
+RNA-seq	ENCSR537GNQ	kidney_E16.5	2	ENCFF143OJZ	ENCODE,GeneQuant
+RNA-seq	ENCSR347SQR	limb_E13.5	1	ENCFF358WYS	ENCODE,GeneQuant
+RNA-seq	ENCSR347SQR	limb_E13.5	2	ENCFF634AUL	ENCODE,GeneQuant
+RNA-seq	ENCSR020DGG	heart_E16.5	1	ENCFF415JBI	ENCODE,GeneQuant
+RNA-seq	ENCSR020DGG	heart_E16.5	2	ENCFF871IGQ	ENCODE,GeneQuant
+RNA-seq	ENCSR284YKY	heart_E13.5	1	ENCFF242GMD	ENCODE,GeneQuant
+RNA-seq	ENCSR284YKY	heart_E13.5	2	ENCFF976CYB	ENCODE,GeneQuant
+RNA-seq	ENCSR597UZW	heart_E15.5	1	ENCFF440PWB	ENCODE,GeneQuant
+RNA-seq	ENCSR597UZW	heart_E15.5	2	ENCFF219PVC	ENCODE,GeneQuant
+RNA-seq	ENCSR538WYL	embryonic facial prominence_E13.5	1	ENCFF132NQU	ENCODE,GeneQuant
+RNA-seq	ENCSR538WYL	embryonic facial prominence_E13.5	2	ENCFF867TKM	ENCODE,GeneQuant
+RNA-seq	ENCSR062VTB	kidney_E15.5	1	ENCFF700YRC	ENCODE,GeneQuant
+RNA-seq	ENCSR062VTB	kidney_E15.5	2	ENCFF347HOK	ENCODE,GeneQuant
+RNA-seq	ENCSR457RRW	lung_E15.5	1	ENCFF718PJC	ENCODE,GeneQuant
+RNA-seq	ENCSR457RRW	lung_E15.5	2	ENCFF996EMC	ENCODE,GeneQuant
+RNA-seq	ENCSR727FHP	heart_E14.5	1	ENCFF111IGW	ENCODE,GeneQuant
+RNA-seq	ENCSR727FHP	heart_E14.5	2	ENCFF540BJT	ENCODE,GeneQuant
+RNA-seq	ENCSR750YSX	limb_E12.5	1	ENCFF879FXB	ENCODE,GeneQuant
+RNA-seq	ENCSR750YSX	limb_E12.5	2	ENCFF470WZZ	ENCODE,GeneQuant
+RNA-seq	ENCSR611PTP	liver_E15.5	1	ENCFF740SXP	ENCODE,GeneQuant
+RNA-seq	ENCSR611PTP	liver_E15.5	2	ENCFF504YJB	ENCODE,GeneQuant
+RNA-seq	ENCSR921PRX	hindbrain_E13.5	1	ENCFF131WIM	ENCODE,GeneQuant
+RNA-seq	ENCSR921PRX	hindbrain_E13.5	2	ENCFF604LWF	ENCODE,GeneQuant
+RNA-seq	ENCSR992WBR	lung_E16.5	1	ENCFF538RNR	ENCODE,GeneQuant
+RNA-seq	ENCSR992WBR	lung_E16.5	2	ENCFF365SND	ENCODE,GeneQuant
+RNA-seq	ENCSR080EVZ	forebrain_E16.5	1	ENCFF590FAC	ENCODE,GeneQuant
+RNA-seq	ENCSR080EVZ	forebrain_E16.5	2	ENCFF484AOO	ENCODE,GeneQuant
+RNA-seq	ENCSR285WZV	hindbrain_E16.5	1	ENCFF211ELX	ENCODE,GeneQuant
+RNA-seq	ENCSR285WZV	hindbrain_E16.5	2	ENCFF830YBR	ENCODE,GeneQuant
+RNA-seq	ENCSR932TRU	intestine_E14.5	1	ENCFF959OHE	ENCODE,GeneQuant
+RNA-seq	ENCSR932TRU	intestine_E14.5	2	ENCFF228SAS	ENCODE,GeneQuant
+RNA-seq	ENCSR647QBV	forebrain_E12.5	1	ENCFF804FTJ	ENCODE,GeneQuant
+RNA-seq	ENCSR647QBV	forebrain_E12.5	2	ENCFF601JPN	ENCODE,GeneQuant
+RNA-seq	ENCSR752RGN	forebrain_E15.5	1	ENCFF763GXJ	ENCODE,GeneQuant
+RNA-seq	ENCSR752RGN	forebrain_E15.5	2	ENCFF340XFQ	ENCODE,GeneQuant
+RNA-seq	ENCSR792RJV	midbrain_E13.5	1	ENCFF422BJI	ENCODE,GeneQuant
+RNA-seq	ENCSR792RJV	midbrain_E13.5	2	ENCFF196WAD	ENCODE,GeneQuant
+RNA-seq	ENCSR115TWD	neural tube_E13.5	1	ENCFF502BTV	ENCODE,GeneQuant
+RNA-seq	ENCSR115TWD	neural tube_E13.5	2	ENCFF049EIV	ENCODE,GeneQuant
+RNA-seq	ENCSR557RMA	midbrain_E15.5	1	ENCFF706XGJ	ENCODE,GeneQuant
+RNA-seq	ENCSR557RMA	midbrain_E15.5	2	ENCFF835FSF	ENCODE,GeneQuant
+RNA-seq	ENCSR648YEP	liver_E12.5	1	ENCFF746VZM	ENCODE,GeneQuant
+RNA-seq	ENCSR648YEP	liver_E12.5	2	ENCFF468PFF	ENCODE,GeneQuant
+RNA-seq	ENCSR508GWZ	neural tube_E12.5	1	ENCFF353TCZ	ENCODE,GeneQuant
+RNA-seq	ENCSR508GWZ	neural tube_E12.5	2	ENCFF224SRI	ENCODE,GeneQuant
+RNA-seq	ENCSR848GST	intestine_E16.5	1	ENCFF443JRH	ENCODE,GeneQuant
+RNA-seq	ENCSR848GST	intestine_E16.5	2	ENCFF278PAQ	ENCODE,GeneQuant
+RNA-seq	ENCSR906YQZ	stomach_E15.5	1	ENCFF972NMO	ENCODE,GeneQuant
+RNA-seq	ENCSR906YQZ	stomach_E15.5	2	ENCFF355MOU	ENCODE,GeneQuant
+RNA-seq	ENCSR636CWO	embryonic facial prominence_E15.5	1	ENCFF369TLJ	ENCODE,GeneQuant
+RNA-seq	ENCSR636CWO	embryonic facial prominence_E15.5	2	ENCFF536XKZ	ENCODE,GeneQuant
+RNA-seq	ENCSR004XCU	neural tube_E15.5	1	ENCFF037GWJ	ENCODE,GeneQuant
+RNA-seq	ENCSR004XCU	neural tube_E15.5	2	ENCFF365DLM	ENCODE,GeneQuant
+RNA-seq	ENCSR970EWM	forebrain_E13.5	1	ENCFF567AFL	ENCODE,GeneQuant
+RNA-seq	ENCSR970EWM	forebrain_E13.5	2	ENCFF227HKF	ENCODE,GeneQuant
+RNA-seq	ENCSR826HIQ	liver_E16.5	1	ENCFF759PUL	ENCODE,GeneQuant
+RNA-seq	ENCSR826HIQ	liver_E16.5	2	ENCFF512KYX	ENCODE,GeneQuant
+RNA-seq	ENCSR928OXI	neural tube_E14.5	1	ENCFF513HAL	ENCODE,GeneQuant
+RNA-seq	ENCSR928OXI	neural tube_E14.5	2	ENCFF967SJG	ENCODE,GeneQuant
+RNA-seq	ENCSR284AMY	liver_E11.5	1	ENCFF954EHG	ENCODE,GeneQuant
+RNA-seq	ENCSR284AMY	liver_E11.5	2	ENCFF523MEO	ENCODE,GeneQuant
+RNA-seq	ENCSR331XCE	intestine_P0	1	ENCFF485CJB	ENCODE,GeneQuant
+RNA-seq	ENCSR331XCE	intestine_P0	2	ENCFF795XBQ	ENCODE,GeneQuant
+RNA-seq	ENCSR160IIN	forebrain_E11.5	1	ENCFF465SNB	ENCODE,GeneQuant
+RNA-seq	ENCSR160IIN	forebrain_E11.5	2	ENCFF976OLT	ENCODE,GeneQuant
+RNA-seq	ENCSR719NAJ	midbrain_P0	1	ENCFF210MWH	ENCODE,GeneQuant
+RNA-seq	ENCSR719NAJ	midbrain_P0	2	ENCFF793WMU	ENCODE,GeneQuant
+RNA-seq	ENCSR096STK	liver_P0	1	ENCFF875HIA	ENCODE,GeneQuant
+RNA-seq	ENCSR096STK	liver_P0	2	ENCFF143HKK	ENCODE,GeneQuant
+RNA-seq	ENCSR337FYI	neural tube_E11.5	1	ENCFF375JDR	ENCODE,GeneQuant
+RNA-seq	ENCSR337FYI	neural tube_E11.5	2	ENCFF298WHK	ENCODE,GeneQuant
+RNA-seq	ENCSR982MRY	lung_P0	1	ENCFF990GIB	ENCODE,GeneQuant
+RNA-seq	ENCSR982MRY	lung_P0	2	ENCFF658LQM	ENCODE,GeneQuant
+RNA-seq	ENCSR307BCA	midbrain_E11.5	1	ENCFF359ZOA	ENCODE,GeneQuant
+RNA-seq	ENCSR307BCA	midbrain_E11.5	2	ENCFF971KZC	ENCODE,GeneQuant
+RNA-seq	ENCSR559TRB	hindbrain_E14.5	1	ENCFF206KRT	ENCODE,GeneQuant
+RNA-seq	ENCSR559TRB	hindbrain_E14.5	2	ENCFF741FZD	ENCODE,GeneQuant
+RNA-seq	ENCSR362AIZ	forebrain_P0	1	ENCFF918QNL	ENCODE,GeneQuant
+RNA-seq	ENCSR362AIZ	forebrain_P0	2	ENCFF895JXR	ENCODE,GeneQuant
+RNA-seq	ENCSR526SEX	heart_P0	1	ENCFF817KPY	ENCODE,GeneQuant
+RNA-seq	ENCSR526SEX	heart_P0	2	ENCFF155GNG	ENCODE,GeneQuant
+RNA-seq	ENCSR216NEG	limb_E14.5	1	ENCFF677BPV	ENCODE,GeneQuant
+RNA-seq	ENCSR216NEG	limb_E14.5	2	ENCFF794QMH	ENCODE,GeneQuant
+RNA-seq	ENCSR848HOX	embryonic facial prominence_E11.5	1	ENCFF772UWT	ENCODE,GeneQuant
+RNA-seq	ENCSR848HOX	embryonic facial prominence_E11.5	2	ENCFF262TXH	ENCODE,GeneQuant
+RNA-seq	ENCSR760TOE	hindbrain_E11.5	1	ENCFF750FTK	ENCODE,GeneQuant
+RNA-seq	ENCSR760TOE	hindbrain_E11.5	2	ENCFF109HTF	ENCODE,GeneQuant
+RNA-seq	ENCSR185LWM	forebrain_E14.5	1	ENCFF745ZJF	ENCODE,GeneQuant
+RNA-seq	ENCSR185LWM	forebrain_E14.5	2	ENCFF816CVP	ENCODE,GeneQuant
+RNA-seq	ENCSR178GUS	stomach_P0	1	ENCFF517XLT	ENCODE,GeneQuant
+RNA-seq	ENCSR178GUS	stomach_P0	2	ENCFF434XNZ	ENCODE,GeneQuant
+RNA-seq	ENCSR017JEG	hindbrain_P0	1	ENCFF798MSP	ENCODE,GeneQuant
+RNA-seq	ENCSR017JEG	hindbrain_P0	2	ENCFF861GUP	ENCODE,GeneQuant
+RNA-seq	ENCSR867YNV	liver_E14.5	1	ENCFF432ZGG	ENCODE,GeneQuant
+RNA-seq	ENCSR867YNV	liver_E14.5	2	ENCFF572OPZ	ENCODE,GeneQuant
+RNA-seq	ENCSR173PJN	kidney_P0	1	ENCFF905HUL	ENCODE,GeneQuant
+RNA-seq	ENCSR173PJN	kidney_P0	2	ENCFF783LVC	ENCODE,GeneQuant
+RNA-seq	ENCSR541XZK	limb_E11.5	1	ENCFF195JHC	ENCODE,GeneQuant
+RNA-seq	ENCSR541XZK	limb_E11.5	2	ENCFF457ZGF	ENCODE,GeneQuant
+RNA-seq	ENCSR039ADS	lung_E14.5	1	ENCFF872ABP	ENCODE,GeneQuant
+RNA-seq	ENCSR039ADS	lung_E14.5	2	ENCFF226ILJ	ENCODE,GeneQuant
+RNA-seq	ENCSR343YLB	midbrain_E14.5	1	ENCFF453GZG	ENCODE,GeneQuant
+RNA-seq	ENCSR343YLB	midbrain_E14.5	2	ENCFF870YWY	ENCODE,GeneQuant
+RNA-seq	ENCSR150CUE	heart_E12.5	2	ENCFF343NNZ	ENCODE,GeneQuant
+RNA-seq	ENCSR150CUE	heart_E12.5	1	ENCFF345NEQ	ENCODE,GeneQuant</code></pre>
+<p>config.yml:</p>
+<pre><code>input: &quot;input.tsv&quot;
+output_dir: &quot;output/&quot;
+assembly: &quot;mm10&quot;</code></pre>
+<h1 id="running-the-analysis">Running the analysis</h1>
+<p>This is a large dataset containing 264 experiments. It is not feasible to analyze such a large dataset on a personal desktop. Nowadays large-scale computing usually happens in the cloud. So in this tutorial I will show you how to use Taiji in a HPC cluster.</p>
+<p>First you need to have an access to a HPC cluster that supports slurm or PBS like workload manager. Now, put following lines in your <code>config.yml</code> file:</p>
+<pre><code>submit_params: &quot;-q home -l walltime=10:00:00&quot;
+submit_command: &quot;qsub&quot;
+submit_cpu_format: &quot;-l nodes=1:ppn=%d&quot;
+submit_memory_format: &quot;-l mem=%dG</code></pre>
+<p>This configuration works for The Triton Shared Computing Cluster (TSCC) at UCSD. You may need to make adjustment for your local environment.</p>
+<p>The submission parameters of individual step are configurable as well:</p>
+<pre><code>resource:
+  RNA_Align:
+    parameter: &quot;-q home -l walltime=24:00:00&quot;
+    memory: 50
+
+  ATAC_Align:
+    memory: 10</code></pre>
+<p>Once you have your <code>config.yml</code> file ready, run the analysis using:</p>
+<pre><code>taiji run --config config.yml --cloud</code></pre>
+<h1 id="results">Results</h1>
+<p>Here are some of the QC metrics:</p>
+<h4 id="number-of-reads">Number of Reads</h4>
+<div style="overflow:scroll">
+<div style="width:2500px">
+<p><img src="static/other/atac_rna_demo/fig1.png" /></p>
+</div>
+</div>
+<h4 id="tss-enrichment">TSS enrichment</h4>
+<div style="overflow:scroll">
+<div style="width:2500px">
+<p><img src="static/other/atac_rna_demo/fig2.png" /></p>
+</div>
+</div>
+<h4 id="fragment-size-distribution">Fragment size distribution</h4>
+<p><img src="static/other/atac_rna_demo/fig3.png" width="550" /></p>
+<p>Taiji combines motif scanning, network inference and the PageRank algorithm to rank TFs. This result will be saved in the <code>GeneRank.tsv</code> file. There is also a <code>GeneRank.html</code> file that you can visualize.</p>
+<h4 id="tf-ranking-scores-showing-639-tfs-across-66-tissues">TF Ranking scores (showing 639 TFs across 66 tissues)</h4>
+<p><img src="static/other/atac_rna_demo/fig4.png" width="900" /></p>
+            </div>
+        </div>
+    
+    </div>
+
+    <footer class="grid-container">
+    <hr />
+    <p>&copy; 2018-2020 Kai Zhang.</p>
+</footer>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/what-input/5.1.2/what-input.min.js"></script>
+    <script src="static/js/foundation.min.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
+
+</html>

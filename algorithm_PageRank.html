@@ -1,0 +1,112 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-149877612-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-149877612-1');
+    </script>
+
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Taiji is an integrative multi-omics 
+        analysis pipeline for network analysis 
+        and driver gene identifications." />
+    <title>Taiji</title>
+
+    <!-- Foundation CSS -->
+    <link href="static/css/app.css" rel="stylesheet" type="text/css">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css?family=Merienda+One" rel="stylesheet" type="text/css">
+
+    <!-- MathJax -->
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+
+
+<body>
+    <div data-sticky-container>
+<div class="top-bar" data-sticky data-options="marginTop:0;" style="width:100%;z-index:999;">
+    <div class="top-bar-left">
+      <ul class="menu">
+        <li id="brand">
+          <image id="logo" src="static/img/logo.svg">
+          <a href="index.html">Taiji</a>
+        </li>
+      </ul>
+    </div>
+    <div class="top-bar-right">
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a target="workflow" href="static/other/taiji.html">Workflow</a></li>
+        <li><a href="install.html">Install</a></li>
+        <li><a href="blog_1_ATAC.html">Tutorial</a></li>
+        <li><a target="_blank" href="https://taiji-pipeline.github.io/documentation/">Manual</a></li>
+        <li><a href="algorithm_PageRank.html">Algorithm</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+</div>
+</div>
+
+    <div id="main" class="grid-container">
+    
+        <div class="off-canvas-wrapper">
+
+            <div class="title-bar hide-for-large">
+                    <button type="button" class="menu-icon" data-open="offCanvas">
+                    </button>
+            </div>
+
+            <div class="off-canvas-absolute off-canvas position-left reveal-for-large" id="offCanvas" data-off-canvas>
+                <ul class="vertical menu">
+                    
+                        <li class="active">
+                            <a href="blog_PageRank.html">PageRank</a>
+                        </li>
+                    
+                </ul>    
+            </div>
+    
+            <div class="off-canvas-content" data-off-canvas-content>
+                <h1 id="constructing-weighted-tf-regulatory-network">Constructing weighted TF regulatory network</h1>
+<p>The weighted network enable us to make use of many weak connections which otherwise will be excluded in an unweighted network.</p>
+<img src="_diagrams/7359cff21d0c829b.png" />
+<p>The edge weight is a combination of three factors:</p>
+<ol type="1">
+<li>Peak intensity <span class="math inline">\(p\)</span>, represented by the p-value of a peak, rescaled to <span class="math inline">\([0, 1]\)</span> by a sigmoid function.</li>
+<li>Motif binding affinity <span class="math inline">\(m\)</span>, represented by the p-value of the motif binding score, rescaled to <span class="math inline">\([0, 1]\)</span> by a sigmoid function.</li>
+<li>TF expression value <span class="math inline">\(g\)</span>.</li>
+</ol>
+<p>If a TF <span class="math inline">\(i\)</span> has <span class="math inline">\(n\)</span> binding sites that are linked to gene <span class="math inline">\(j\)</span>, then the edge weight is determined by:</p>
+<p><span class="math display">\[e_{ij} = \sqrt{g\sum_{k=1}^n{p_k * m_k}}\]</span></p>
+<h1 id="computing-tf-ranks-using-the-pagerank-algorithm">Computing TF ranks using the PageRank algorithm</h1>
+<p>Let <span class="math inline">\(s\)</span> be the vector containing node weights and <span class="math inline">\(W\)</span> be the edge weight matrix. The personalized PageRank score vector <span class="math inline">\(v\)</span> was calculated by solving a system of linear equations <span class="math inline">\(v = (1 − d)s + dWv\)</span>, where <span class="math inline">\(d\)</span> is the damping factor (default to 0.85). The above equation can be solved in an iterative fashion, <em>i.e.</em>, setting <span class="math inline">\(v_{t+1} = (1-d)s + dWv_t\)</span>.</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/P8Kt6Abq_rM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+</iframe>
+<h1 id="statistical-significance-of-pagerank-scores">Statistical significance of PageRank scores</h1>
+<p>To determine the statistical significance of PageRank scores, we randomly rewire edges in the network and compute the PageRank scores. We do this 10 times to get enough samples for computing the null distribution. The p-values of PageRank scores were then inferred as to the null distribution.</p>
+            </div>
+        </div>
+    
+    </div>
+
+    <footer class="grid-container">
+    <hr />
+    <p>&copy; 2018-2020 Kai Zhang.</p>
+</footer>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/what-input/5.1.2/what-input.min.js"></script>
+    <script src="static/js/foundation.min.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
+
+</html>
